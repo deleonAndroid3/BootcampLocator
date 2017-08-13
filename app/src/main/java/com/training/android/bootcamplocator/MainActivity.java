@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
@@ -30,7 +32,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
-
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
 
@@ -74,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
+
         if (mLastLocation != null) {
             LatLng currentLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 
@@ -83,8 +85,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     build();
             mMap.addMarker(new MarkerOptions().position(currentLocation).title("Current Location"));
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
-        AddMarkers();
+
+            AddMarkers();
+            addFragments();
+        }else
+            Toast.makeText(this, "Unable to get Current Location", Toast.LENGTH_SHORT).show();
+
 
     }
 
@@ -182,5 +188,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .icon(icon));
         }
 
+    }
+
+    public void addFragments() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        LocationFragment LF1 = LocationFragment.newInstance();
+
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                .add(R.id.view, LF1);
+
+        fragmentTransaction.commit();
     }
 }
