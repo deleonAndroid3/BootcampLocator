@@ -19,6 +19,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -83,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.addMarker(new MarkerOptions().position(currentLocation).title("Current Location"));
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
+        AddMarkers();
 
     }
 
@@ -167,6 +169,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Controller controller = new Controller();
         List<BootcampLocation> locationsList = controller.getmController();
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.map_pin);
 
         for (BootcampLocation location :
                 locationsList) {
@@ -175,7 +178,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.addMarker(new MarkerOptions()
                     .title(location.getTitle())
                     .snippet(location.getSnippet())
-                    .position(latlng));
+                    .position(latlng)
+                    .icon(icon));
         }
 
     }
