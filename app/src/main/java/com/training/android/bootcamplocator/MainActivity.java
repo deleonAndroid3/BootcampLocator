@@ -26,6 +26,10 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.training.android.bootcamplocator.Controllers.Controller;
+import com.training.android.bootcamplocator.Fragments.LocationFragment;
+import com.training.android.bootcamplocator.Fragments.SearchFragment;
+import com.training.android.bootcamplocator.Model.BootcampLocation;
 
 import java.util.List;
 
@@ -88,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             AddMarkers();
             addFragments();
-        }else
+        } else
             Toast.makeText(this, "Unable to get Current Location", Toast.LENGTH_SHORT).show();
 
 
@@ -194,9 +198,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         LocationFragment LF1 = LocationFragment.newInstance();
-
+        SearchFragment SF1 = SearchFragment.newInstance();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                .add(R.id.view, LF1);
+                .add(R.id.view, LF1)
+                .add(R.id.search_container, SF1);
 
         fragmentTransaction.commit();
     }

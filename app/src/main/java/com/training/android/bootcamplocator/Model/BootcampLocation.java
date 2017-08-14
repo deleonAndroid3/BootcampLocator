@@ -1,4 +1,4 @@
-package com.training.android.bootcamplocator;
+package com.training.android.bootcamplocator.Model;
 
 /**
  * Created by Dyste on 8/13/2017.

@@ -1,4 +1,4 @@
-package com.training.android.bootcamplocator;
+package com.training.android.bootcamplocator.Adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,6 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.training.android.bootcamplocator.Model.BootcampLocation;
+import com.training.android.bootcamplocator.R;
 
 import java.util.List;
 
