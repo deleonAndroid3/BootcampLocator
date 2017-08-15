@@ -1,6 +1,9 @@
 package com.training.android.bootcamplocator;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -8,15 +11,24 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -28,7 +40,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.training.android.bootcamplocator.Controllers.Controller;
 import com.training.android.bootcamplocator.Fragments.LocationFragment;
-import com.training.android.bootcamplocator.Fragments.SearchFragment;
 import com.training.android.bootcamplocator.Model.BootcampLocation;
 
 import java.util.List;
@@ -38,10 +49,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         GoogleApiClient.OnConnectionFailedListener {
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
+    protected static final int REQUEST_CHECK_SETTINGS = 2;
 
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
+    private LocationRequest mLocationRequest;
+    private EditText mEtZipCode;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +66,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        mEtZipCode = (EditText) findViewById(R.id.etZipCode);
+
+
+        mEtZipCode.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if (!mEtZipCode.getText().toString().isEmpty()) {
+                    if (i == EditorInfo.IME_ACTION_DONE) {
+                        AddMarkers();
+                        AddFragment();
+                    }
+                }else
+                    mEtZipCode.setError("Enter Zip Code");
+                return false;
+            }
+        });
 
     }
 
@@ -71,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
 
+        LocationRequest();
     }
 
     @Override
@@ -90,11 +123,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.addMarker(new MarkerOptions().position(currentLocation).title("Current Location"));
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
-            AddMarkers();
-            addFragments();
-        } else
+        } else {
             Toast.makeText(this, "Unable to get Current Location", Toast.LENGTH_SHORT).show();
-
+        }
 
     }
 
@@ -136,6 +167,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return;
             }
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CHECK_SETTINGS:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        Toast.makeText(this, "GPS Enabled", Toast.LENGTH_SHORT).show();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        settingsRequest();//keep asking if imp or do whatever
+                        break;
+                }
+                break;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mGoogleApiClient.disconnect();
     }
 
     public void BuildApiclient() {
@@ -194,15 +257,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void addFragments() {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-
+    public void AddFragment() {
         LocationFragment LF1 = LocationFragment.newInstance();
-        SearchFragment SF1 = SearchFragment.newInstance();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                .add(R.id.view, LF1)
-                .add(R.id.search_container, SF1);
 
-        fragmentTransaction.commit();
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.view, LF1)
+                .commit();
     }
+
+    public void LocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(5000);
+        mLocationRequest.setFastestInterval(2000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setSmallestDisplacement(10);
+        settingsRequest();
+    }
+
+    public void settingsRequest() {
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+        builder.setAlwaysShow(true);
+
+        final PendingResult<LocationSettingsResult> pendingResult =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
+        pendingResult.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(@NonNull LocationSettingsResult locationSettingsResult) {
+                final Status status = locationSettingsResult.getStatus();
+
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can initialize location
+                        // requests here.
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied. But could be fixed by showing the user
+                        // a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            status.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way to fix the
+                        // settings so we won't show the dialog.
+                        break;
+                }
+            }
+        });
+    }
+
+
 }

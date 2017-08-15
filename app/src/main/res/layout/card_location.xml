@@ -6,11 +6,13 @@
     android:id="@+id/cardLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
+    android:layout_margin="7dp"
     app:cardPreventCornerOverlap="false"
     app:cardUseCompatPadding="true"
     app:stackFromEnd="true"
     card_view:cardCornerRadius="6dp">
+
+
 
     <RelativeLayout
         android:layout_width="match_parent"
